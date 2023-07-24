@@ -116,9 +116,11 @@ public class CustomerIdentificationScript: MonoBehaviour
 	void Introduction()
 	{
 		StartCoroutine(Reintroduction());
-	}
-	
-	void UniquePlay()
+		StartCoroutine(StartFade(NotBuffer[0].length, 1, 0));
+
+    }
+
+    void UniquePlay()
 	{
 		for (int c = 0; c < Unique.Count(); c++)
         {
@@ -134,7 +136,7 @@ public class CustomerIdentificationScript: MonoBehaviour
 	IEnumerator Reintroduction()
 	{
 		Intro = true;
-		Debug.LogFormat("[Customer Identification #{0}] Play the sting!", moduleId);
+
 		SecondMusic.clip = NotBuffer[0];
 		SecondMusic.Play();
         while (SecondMusic.isPlaying)
@@ -654,5 +656,25 @@ public class CustomerIdentificationScript: MonoBehaviour
 			}
 		}
 	}
+
+    public IEnumerator StartFade(float duration, float startVolumne, float targetVolume)
+    {
+        float currentTime = 0;
+		SecondMusic.volume = startVolumne;
+
+        while (currentTime < duration)
+        {
+            currentTime += Time.deltaTime;
+            SecondMusic.volume = Mathf.Lerp(startVolumne, targetVolume, currentTime / duration);
+            yield return null;
+        }
+
+        yield break;
+    }
+
+    private void Logging(string s)
+    {
+        Debug.LogFormat("[Mask Identification #{0}] {1}", moduleId, s);
+    }
 }
 	
