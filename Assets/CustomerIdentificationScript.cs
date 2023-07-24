@@ -277,105 +277,107 @@ public class CustomerIdentificationScript: MonoBehaviour
 	IEnumerator PlayTheQueue()
 	{
 		Toggleable = false;
-		ActiveBorder = true;
+        ActiveBorder = true;
 		Playable = false;
-		Debug.LogFormat("[Customer Identification #{0}] The name of the customer shown: {1}", moduleId, SeedPacketIdentifier[Unique[Stages]].name);
+
+		Debug.Log(SeedPacketIdentifier == null);
+        Debug.Log(Unique == null);
+
+
+        Logging("The mask is called " + SeedPacketIdentifier[Unique[Stages]].name);
 		SeedPacket.sprite = SeedPacketIdentifier[Unique[Stages]];
 		SeedPacket.material = ImageLighting[1];
 		yield return new WaitForSecondsRealtime(7.5f);
 		SeedPacket.sprite = DefaultSprite;
 		SeedPacket.material = ImageLighting[0];
 		Playable = true;
-		ActiveBorder = false;
+        ActiveBorder = false;
 		Enterable = true;
-	}
-	
-	IEnumerator TheCorrect()
+    }
+
+    IEnumerator TheCorrect()
 	{
 		string Analysis = TextBox.text;
 		TextBox.text = "";
-		Debug.LogFormat("[Customer Identification #{0}] Text that was submitted: {1}", moduleId, Analysis);
-			if (Analysis  == SeedPacketIdentifier[Unique[Stages]].name)
+		Logging("You submitted " +  Analysis);
+
+		if (Analysis  == SeedPacketIdentifier[Unique[Stages]].name)
+		{
+			Stages++;
+			Playable = false;
+			Enterable = false;
+			if (Stages == 3)
 			{
-				Stages++;
-				Playable = false;
-				Enterable = false;
-				if (Stages == 3)
+				Animating1 = true;
+				SecondMusic.clip = NotBuffer[8];
+				SecondMusic.Play();
+                StartCoroutine(RoulleteToWin());
+				while (SecondMusic.isPlaying)
 				{
-					Animating1 = true;
-					Debug.LogFormat("[Customer Identification #{0}] You solved the module three times in a row. GG!", moduleId);
-					SecondMusic.clip = NotBuffer[8];
-					SecondMusic.Play();
-					StartCoroutine(RoulleteToWin());
-					while (SecondMusic.isPlaying)
-					{
-						LightBulbs[0].material = TheLights[0];
-						LightBulbs[1].material = TheLights[0];
-						LightBulbs[2].material = TheLights[1];
-						yield return new WaitForSecondsRealtime(0.02f);
-						LightBulbs[0].material = TheLights[0];
-						LightBulbs[1].material = TheLights[1];
-						LightBulbs[2].material = TheLights[0];
-						yield return new WaitForSecondsRealtime(0.02f);
-						LightBulbs[0].material = TheLights[1];
-						LightBulbs[1].material = TheLights[0];
-						LightBulbs[2].material = TheLights[0];
-						yield return new WaitForSecondsRealtime(0.02f);
-					}
-					LightBulbs[0].material = TheLights[1];
-					LightBulbs[1].material = TheLights[1];
+					LightBulbs[0].material = TheLights[0];
+					LightBulbs[1].material = TheLights[0];
 					LightBulbs[2].material = TheLights[1];
-					Debug.LogFormat("[Customer Identification #{0}] The module is done.", moduleId);
-					Module.HandlePass();
-					Animating1 = false;
+					yield return new WaitForSecondsRealtime(0.02f);
+					LightBulbs[0].material = TheLights[0];
+					LightBulbs[1].material = TheLights[1];
+					LightBulbs[2].material = TheLights[0];
+					yield return new WaitForSecondsRealtime(0.02f);
+					LightBulbs[0].material = TheLights[1];
+					LightBulbs[1].material = TheLights[0];
+					LightBulbs[2].material = TheLights[0];
+					yield return new WaitForSecondsRealtime(0.02f);
 				}
-			
-				else
-				{
-					Debug.LogFormat("[Customer Identification #{0}] The text matches the name of the customer. Good job!", moduleId);
-					Animating1 = true;
-					AnotherShower.sprite = SeedPacketIdentifier[Unique[Stages-1]];
-					int Decider = UnityEngine.Random.Range(0,2); if (Decider == 1) SecondMusic.clip = NotBuffer[2];  else SecondMusic.clip = NotBuffer[4];
-					SecondMusic.Play();
-					while (SecondMusic.isPlaying)
-					{
-						yield return new WaitForSecondsRealtime(0.075f);
-					}
-					LightBulbs[Stages-1].material = TheLights[1];
-					SeedPacket.sprite = DefaultSprite;
-					Playable = true;
-					Toggleable = true;
-					Animating1 = false;
-				}
+				LightBulbs[0].material = TheLights[1];
+				LightBulbs[1].material = TheLights[1];
+				LightBulbs[2].material = TheLights[1];
+                Logging("Module Solved");
+                Module.HandlePass();
+				Animating1 = false;
 			}
 			
 			else
 			{
-				Debug.LogFormat("[Customer Identification #{0}] The text does not match the name of the customer. Oh no!", moduleId);
 				Animating1 = true;
-				SecondMusic.clip = NotBuffer[5 + UnityEngine.Random.Range(0, 3)];
+				AnotherShower.sprite = SeedPacketIdentifier[Unique[Stages-1]];
+				int Decider = UnityEngine.Random.Range(0,2); if (Decider == 1) SecondMusic.clip = NotBuffer[2];  else SecondMusic.clip = NotBuffer[4];
 				SecondMusic.Play();
-				Enterable = false;
-				LightBulbs[0].material = TheLights[2];
-				LightBulbs[1].material = TheLights[2];
-				LightBulbs[2].material = TheLights[2];
-				Debug.LogFormat("[Customer Identification #{0}] Strike!", moduleId);
 				while (SecondMusic.isPlaying)
 				{
 					yield return new WaitForSecondsRealtime(0.075f);
 				}
+				LightBulbs[Stages-1].material = TheLights[1];
 				SeedPacket.sprite = DefaultSprite;
-				LightBulbs[0].material = TheLights[0];
-				LightBulbs[1].material = TheLights[0];
-				LightBulbs[2].material = TheLights[0];
 				Playable = true;
 				Toggleable = true;
 				Animating1 = false;
-				Stages = 0;
-				Module.HandleStrike();
-				Debug.LogFormat("[Customer Identification #{0}] The module resetted and striked as a cost for giving an incorrect answer.", moduleId);
-				UniquePlay();
 			}
+		}
+			
+		else
+		{
+			Animating1 = true;
+			SecondMusic.clip = NotBuffer[5 + UnityEngine.Random.Range(0, 3)];
+			SecondMusic.Play();
+			Enterable = false;
+			LightBulbs[0].material = TheLights[2];
+			LightBulbs[1].material = TheLights[2];
+			LightBulbs[2].material = TheLights[2];
+			while (SecondMusic.isPlaying)
+			{
+				yield return new WaitForSecondsRealtime(0.075f);
+			}
+			SeedPacket.sprite = DefaultSprite;
+			LightBulbs[0].material = TheLights[0];
+			LightBulbs[1].material = TheLights[0];
+			LightBulbs[2].material = TheLights[0];
+			Playable = true;
+			Toggleable = true;
+			Animating1 = false;
+			Stages = 0;
+            Logging("Strike! Module will now reset");
+            Module.HandleStrike();
+			UniquePlay();
+		}
 	}
 	
 	IEnumerator RoulleteToWin()
