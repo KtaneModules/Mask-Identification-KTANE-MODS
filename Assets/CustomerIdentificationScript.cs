@@ -6,32 +6,30 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using KModkit;
 using UnityEditor;
+using UnityEngine.SocialPlatforms;
+using Rnd = UnityEngine.Random;
 
 public class CustomerIdentificationScript : MonoBehaviour
 {
 	public KMAudio Audio;
 	public KMBombInfo Bomb;
 	public KMBombModule Module;
-	public AudioSource SecondMusic;
 
 	public KMSelectable[] Keyboard;
 	public KMSelectable Border;
 	
 	public MeshRenderer[] BorderAndTile;
-	public Material[] Chapters;
 	public SpriteRenderer SeedPacket;
 	public Sprite[] SeedPacketIdentifier;
 	public Sprite DefaultSprite;
-	public Sprite DeathSprite;
 	public Material[] ImageLighting;
-	
-	public MeshRenderer[] LightBulbs;
+
+    public MeshRenderer[] LightBulbs;
 	public Material[] TheLights;
 	
 	public TextMesh[] Text;
 	public TextMesh TextBox;
 	public GameObject TheBox;
-	public SpriteRenderer AnotherShower;
 	public SpriteRenderer AnotherAnotherShower;
 	public Sprite ThumbsUp;
 
@@ -40,10 +38,17 @@ public class CustomerIdentificationScript : MonoBehaviour
     private bool shift;
 
     public GameObject[] IShow;
-	
-	bool Shifted = false;
-	
-	public AudioClip[] NotBuffer;
+
+    public AudioClip[] SuccessClips;
+    public AudioClip[] FailClips;
+    public AudioClip   KeyboardClip;
+	public AudioClip   IntroClip;
+    public AudioClip   OutroClip;
+
+
+    private bool[] successArr;
+
+    bool Shifted = false;
 	
 	string[][] ChangedText = new string[2][]{
 		new string[47] {"`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]", "\\", "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'", "z", "x", "c", "v", "b", "n", "m", ",", ".", "/"},
@@ -100,7 +105,7 @@ public class CustomerIdentificationScript : MonoBehaviour
 		{
             button.AddInteractionPunch(0.1f);
 
-			//play keyboard sound
+			Audio.PlaySoundAtTransform(KeyboardClip.name, transform);
 
 			string buttonLabel = "";
 
@@ -190,34 +195,33 @@ public class CustomerIdentificationScript : MonoBehaviour
 	void Introduction()
 	{
 		StartCoroutine(Reintroduction());
-		StartCoroutine(StartFade(NotBuffer[0].length, 1, 0));
-
     }
 
     void UniquePlay()
 	{
+		int[] arr = new int[] { 12, 15, 19, 23, 29 };
+
 		for (int c = 0; c < Unique.Count(); c++)
         {
-            Unique[c] = UnityEngine.Random.Range(0, SeedPacketIdentifier.Count());
+			Unique[c] = arr[Rnd.Range(0, arr.Count())];
         }
 		
 		if (Unique[0] == Unique[1] || Unique[0] == Unique[2] || Unique[1] == Unique[2])
 		{
 			UniquePlay();
 		}
+		
 	}
 	
 	IEnumerator Reintroduction()
 	{
 		Intro = true;
+		Audio.PlaySoundAtTransform(IntroClip.name, transform);
+        successArr = new bool[] { false, false, false };
 
-		SecondMusic.clip = NotBuffer[0];
-		SecondMusic.Play();
-        while (SecondMusic.isPlaying)
-		{
-			yield return new WaitForSecondsRealtime(0.01f);
-		}
-		Playable = true;
+        yield return new WaitForSecondsRealtime(IntroClip.length);
+
+        Playable = true;
 		Intro = false;
 	}
 	
@@ -232,8 +236,6 @@ public class CustomerIdentificationScript : MonoBehaviour
 	
 	void PressEnter()
 	{
-		Keyboard[37].AddInteractionPunch(.2f);
-		Audio.PlaySoundAtTransform(NotBuffer[1].name, transform);
 		if (Playable && Enterable)
 		{
 			StartCoroutine(TheCorrect());
@@ -271,42 +273,20 @@ public class CustomerIdentificationScript : MonoBehaviour
 			if (Stages == 3)
 			{
 				Animating1 = true;
-				SecondMusic.clip = NotBuffer[8];
-				SecondMusic.Play();
-                StartCoroutine(RoulleteToWin());
-				while (SecondMusic.isPlaying)
-				{
-					LightBulbs[0].material = TheLights[0];
-					LightBulbs[1].material = TheLights[0];
-					LightBulbs[2].material = TheLights[1];
-					yield return new WaitForSecondsRealtime(0.02f);
-					LightBulbs[0].material = TheLights[0];
-					LightBulbs[1].material = TheLights[1];
-					LightBulbs[2].material = TheLights[0];
-					yield return new WaitForSecondsRealtime(0.02f);
-					LightBulbs[0].material = TheLights[1];
-					LightBulbs[1].material = TheLights[0];
-					LightBulbs[2].material = TheLights[0];
-					yield return new WaitForSecondsRealtime(0.02f);
-				}
-				LightBulbs[0].material = TheLights[1];
-				LightBulbs[1].material = TheLights[1];
-				LightBulbs[2].material = TheLights[1];
-                Logging("Module Solved");
-                Module.HandlePass();
-				Animating1 = false;
+				AudioClip audioClip = GetSuccessClip();
+				Audio.PlaySoundAtTransform(OutroClip.name, transform);
+                StartCoroutine(RoulleteToWin(OutroClip.length));
+				StartCoroutine(SolveAnimation(OutroClip.length));
 			}
 			
 			else
 			{
 				Animating1 = true;
-				AnotherShower.sprite = SeedPacketIdentifier[Unique[Stages-1]];
-				int Decider = UnityEngine.Random.Range(0,2); if (Decider == 1) SecondMusic.clip = NotBuffer[2];  else SecondMusic.clip = NotBuffer[4];
-				SecondMusic.Play();
-				while (SecondMusic.isPlaying)
-				{
-					yield return new WaitForSecondsRealtime(0.075f);
-				}
+				AudioClip clip = GetSuccessClip();
+				Audio.PlaySoundAtTransform(clip.name, transform);
+				
+				yield return new WaitForSecondsRealtime(clip.length);
+				
 				LightBulbs[Stages-1].material = TheLights[1];
 				SeedPacket.sprite = DefaultSprite;
 				Playable = true;
@@ -318,16 +298,16 @@ public class CustomerIdentificationScript : MonoBehaviour
 		else
 		{
 			Animating1 = true;
-			SecondMusic.clip = NotBuffer[5 + UnityEngine.Random.Range(0, 3)];
-			SecondMusic.Play();
-			Enterable = false;
+			AudioClip clip = FailClips[Rnd.Range(0,3)];
+			Audio.PlaySoundAtTransform(clip.name, transform);
+
+            Enterable = false;
 			LightBulbs[0].material = TheLights[2];
 			LightBulbs[1].material = TheLights[2];
 			LightBulbs[2].material = TheLights[2];
-			while (SecondMusic.isPlaying)
-			{
-				yield return new WaitForSecondsRealtime(0.075f);
-			}
+
+			yield return new WaitForSecondsRealtime(clip.length);
+			
 			SeedPacket.sprite = DefaultSprite;
 			LightBulbs[0].material = TheLights[0];
 			LightBulbs[1].material = TheLights[0];
@@ -342,33 +322,73 @@ public class CustomerIdentificationScript : MonoBehaviour
 		}
 	}
 	
-	IEnumerator RoulleteToWin()
+	IEnumerator RoulleteToWin(float length)
 	{
-		while (SecondMusic.isPlaying)
+		float currentTime = 0;
+		while (currentTime < length)
 		{
-			for (int x = 0; x < 3; x++)
+            currentTime += Time.deltaTime;
+
+            for (int x = 0; x < 3; x++)
 			{
-				AnotherShower.sprite = SeedPacketIdentifier[Unique[x]];
+                SeedPacket.sprite = SeedPacketIdentifier[Unique[x]];
 				yield return new WaitForSecondsRealtime(0.2f);
 			}
+
+			Debug.Log(currentTime);
+            yield return null;
 		}
+
 	}
 
-    public IEnumerator StartFade(float duration, float startVolumne, float targetVolume)
-    {
-        float currentTime = 0;
-        SecondMusic.volume = startVolumne;
 
-        while (currentTime < duration)
+	IEnumerator SolveAnimation(float length)
+	{
+        float currentTime = 0;
+        while (currentTime < length)
         {
             currentTime += Time.deltaTime;
-            SecondMusic.volume = Mathf.Lerp(startVolumne, targetVolume, currentTime / duration);
+
+            LightBulbs[0].material = TheLights[0];
+            LightBulbs[1].material = TheLights[0];
+            LightBulbs[2].material = TheLights[1];
+            yield return new WaitForSecondsRealtime(0.02f);
+            LightBulbs[0].material = TheLights[0];
+            LightBulbs[1].material = TheLights[1];
+            LightBulbs[2].material = TheLights[0];
+            yield return new WaitForSecondsRealtime(0.02f);
+            LightBulbs[0].material = TheLights[1];
+            LightBulbs[1].material = TheLights[0];
+            LightBulbs[2].material = TheLights[0];
+            yield return new WaitForSecondsRealtime(0.02f);
+
             yield return null;
         }
-
-        yield break;
+        LightBulbs[0].material = TheLights[1];
+        LightBulbs[1].material = TheLights[1];
+        LightBulbs[2].material = TheLights[1];
+        Logging("Module Solved");
+        Module.HandlePass();
+        Animating1 = false;
     }
 
+    AudioClip GetSuccessClip() 
+	{
+		int index;
+
+		do
+		{
+			index = Rnd.Range(0, 3);
+
+		} while (successArr[index]);
+
+		if (!successArr.Any(x => !x))
+		{
+			successArr = new bool[] { false, false, false };
+		}
+
+		return SuccessClips[index];
+	}
     private void Logging(string s)
     {
         Debug.LogFormat("[Mask Identification #{0}] {1}", moduleId, s);
@@ -376,7 +396,7 @@ public class CustomerIdentificationScript : MonoBehaviour
 
 	//twitch plays
 #pragma warning disable 414
-	private readonly string TwitchHelpMessage = @"Use !{0} submit [mask name] to submit the name of the mask. Use !{0} start to just press enter.";
+	private readonly string TwitchHelpMessage = @"Use `!{0} submit [mask name]` to submit the name of the mask. Use `!{0} start` to just press enter.";
     #pragma warning restore 414
 	
 	int StartingNumber = 0;
@@ -422,9 +442,6 @@ public class CustomerIdentificationScript : MonoBehaviour
             }
 
             Keyboard[37].OnInteract();
-            
-			if (ModuleSolved && Stages > 3)
-                yield return "awardpointsonsolve " + (Stages - 3);
         }
     }
 
