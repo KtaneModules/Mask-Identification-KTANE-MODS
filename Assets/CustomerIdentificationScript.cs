@@ -185,7 +185,6 @@ public class CustomerIdentificationScript : MonoBehaviour
             {
                 if (Input.GetKeyDown(TypableKeys[i]))
                 {
-                    Debug.Log(i + " " + TypableKeys[i].ToString());
                     Keyboard[i].OnInteract();
                 }
             }
@@ -199,11 +198,10 @@ public class CustomerIdentificationScript : MonoBehaviour
 
     void UniquePlay()
 	{
-		int[] arr = new int[] { 12, 15, 19, 23, 29 };
 
 		for (int c = 0; c < Unique.Count(); c++)
         {
-			Unique[c] = arr[Rnd.Range(0, arr.Count())];
+			Unique[c] = Rnd.Range(0, SeedPacketIdentifier.Count());
         }
 		
 		if (Unique[0] == Unique[1] || Unique[0] == Unique[2] || Unique[1] == Unique[2])
@@ -329,10 +327,13 @@ public class CustomerIdentificationScript : MonoBehaviour
 		{
             currentTime += Time.deltaTime;
 
+			Debug.LogFormat("{0} | {1}", currentTime, length);
+
             for (int x = 0; x < 3; x++)
 			{
                 SeedPacket.sprite = SeedPacketIdentifier[Unique[x]];
 				yield return new WaitForSecondsRealtime(0.2f);
+				currentTime += .2f;
 			}
 
 			Debug.Log(currentTime);
@@ -362,6 +363,7 @@ public class CustomerIdentificationScript : MonoBehaviour
             LightBulbs[2].material = TheLights[0];
             yield return new WaitForSecondsRealtime(0.02f);
 
+			currentTime += .06f;
             yield return null;
         }
         LightBulbs[0].material = TheLights[1];
