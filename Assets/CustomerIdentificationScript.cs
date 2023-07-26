@@ -8,6 +8,8 @@ using KModkit;
 using UnityEditor;
 using UnityEngine.SocialPlatforms;
 using Rnd = UnityEngine.Random;
+using UnityEngine.UI;
+using UnityEditorInternal;
 
 public class CustomerIdentificationScript : MonoBehaviour
 {
@@ -48,13 +50,6 @@ public class CustomerIdentificationScript : MonoBehaviour
 
     private bool[] successArr;
 
-    bool Shifted = false;
-	
-	string[][] ChangedText = new string[2][]{
-		new string[47] {"`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]", "\\", "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'", "z", "x", "c", "v", "b", "n", "m", ",", ".", "/"},
-		new string[47] {"~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "_", "+", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "{", "}", "|", "A", "S", "D", "F", "G", "H", "J", "K", "L", ":", "\"", "Z", "X", "C", "V", "B", "N", "M", "<", ">", "?"}
-	};
-
     private KeyCode[] TypableKeys =
     {
         KeyCode.Q, KeyCode.W, KeyCode.E, KeyCode.R, KeyCode.T, KeyCode.Y, KeyCode.U, KeyCode.I, KeyCode.O, KeyCode.P, 
@@ -65,7 +60,6 @@ public class CustomerIdentificationScript : MonoBehaviour
         KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4, KeyCode.Alpha5, KeyCode.Alpha6, KeyCode.Alpha7, KeyCode.Alpha8, KeyCode.Alpha9, KeyCode.Alpha0, KeyCode.Backspace, KeyCode.Space
     };
 
-
     int[] Unique = {0, 0, 0};
 	
 	bool Playable = false;
@@ -73,10 +67,6 @@ public class CustomerIdentificationScript : MonoBehaviour
 	bool Toggleable = true;
 	int Stages = 0;
 
-
-	
-	int ChapterNumber;
-	
     static int moduleIdCounter = 1;
     int moduleId;
     private bool ModuleSolved;
@@ -398,7 +388,7 @@ public class CustomerIdentificationScript : MonoBehaviour
 
 	//twitch plays
 #pragma warning disable 414
-	private readonly string TwitchHelpMessage = @"Use `!{0} submit [mask name]` to submit the name of the mask. Use `!{0} start` to just press enter.";
+	private readonly string TwitchHelpMessage = @"Use `!{0} border` to reveal the mask. Use `!{0} backspace 2` to remove the last two characters typed. `!{0} type [mask name]` to type the name of the mask. Use `!{0} submit` to press enter.";
     #pragma warning restore 414
 	
 	int StartingNumber = 0;
@@ -407,84 +397,18 @@ public class CustomerIdentificationScript : MonoBehaviour
 	bool Animating1 = false;
 	string Current = "";
 
-    IEnumerator ProcessTwitchCommand(string command)
+#pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"Use !{0} to do something.";
+#pragma warning restore 414
+
+    IEnumerator ProcessTwitchCommand(string Command)
     {
-        command = command.Trim();
-        List<string> parameters = command.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-        char[] keyLetters = Keyboard.Select(x => x.GetComponentInChildren<TextMesh>().text.ToUpper()[0]).Concat(" \"").ToArray();
-
-        if (command.Equals("start", StringComparison.InvariantCultureIgnoreCase))
-        {
-            yield return null;
-            Keyboard[37].OnInteract();
-        }
-        else if (parameters.First().Equals("submit", StringComparison.InvariantCultureIgnoreCase) && parameters.Skip(1).Join("").All(x => keyLetters.Contains(char.ToUpper(x))))
-        {
-            yield return null;
-            while (TextBox.text.Length != 0)
-            {
-                Keyboard[59].OnInteract();
-                yield return new WaitForSeconds(0.1f);
-            }
-            if (capsLock)
-                Keyboard[36].OnInteract();
-            foreach (char letter in parameters.Skip(1).Join())
-            {
-                if ("ABCDEFGHIJKLMNOPQRSTUVWXYZ\"".Contains(letter) ^ shift)
-                {
-                    Keyboard[38].OnInteract();
-                    yield return new WaitForSeconds(0.1f);
-                }
-                if (letter == ' ')
-                    Keyboard[60].OnInteract();
-                else if (letter == '"')
-                    Keyboard[26].OnInteract();
-                else Keyboard[Array.IndexOf(keyLetters, char.ToUpperInvariant(letter))].OnInteract();
-                yield return new WaitForSeconds(0.1f);
-            }
-
-            Keyboard[37].OnInteract();
-        }
+        yield return null;
     }
 
     IEnumerator TwitchHandleForcedSolve()
     {
-        char[] keyLetters = Keyboard.Select(x => x.GetComponentInChildren<TextMesh>().text.ToUpper()[0]).Concat(" ").ToArray();
-        while (!ModuleSolved)
-        {
-			for (int i = 0; i < 3; i++)
-			{
-				PressBorder();
-
-				while (!Enterable)
-				{
-                    yield return null;
-                }
-
-				string answer = SeedPacketIdentifier[Unique[Stages]].name;
-
-				foreach (char c in answer)
-				{
-                    if("ABCDEFGHIJKLMNOPQRSTUVWXYZ\"".Contains(c) ^ shift)
-                {
-                        Keyboard[38].OnInteract();
-                        yield return new WaitForSeconds(c);
-                    }
-                    if (c  == ' ')
-                        Keyboard[60].OnInteract();
-                    else Keyboard[Array.IndexOf(keyLetters, char.ToUpperInvariant(c))].OnInteract();
-                }
-            }
-
-            Keyboard[37].OnInteract();
-        }
-
-		while (!ModuleSolved) 
-		{
-            yield return null;
-		}
+        yield return null;
     }
-
-
 }
 	
