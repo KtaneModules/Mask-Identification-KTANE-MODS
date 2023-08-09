@@ -496,80 +496,88 @@ public class MaskIdentification : MonoBehaviour
                 yield return null;
                 for (int i = 0; i < charsToType.Length; i++)
                 {
-                    if (charsToType[i] == '"')
+                    if (TextBox.text.Length < 30)
                     {
-                        if (!capsLock && !shift)
+                        if (charsToType[i] == '"')
                         {
-                            if (i != charsToType.Length - 1 && "ABCDEFGHIJKLMNOPQRSTUVWXYZ\"".Contains(charsToType[i + 1]))
+                            if (!capsLock && !shift)
+                            {
+                                if (i != charsToType.Length - 1 && "ABCDEFGHIJKLMNOPQRSTUVWXYZ\"".Contains(charsToType[i + 1]))
+                                {
+                                    Keyboard[36].OnInteract();
+                                    yield return new WaitForSeconds(0.05f);
+                                }
+                                else
+                                {
+                                    Keyboard[38].OnInteract();
+                                    yield return new WaitForSeconds(0.05f);
+                                }
+                            }
+                            Keyboard[26].OnInteract();
+                        }
+                        else if (charsToType[i] == '\'')
+                        {
+                            if (capsLock)
                             {
                                 Keyboard[36].OnInteract();
                                 yield return new WaitForSeconds(0.05f);
                             }
-                            else
+                            else if (shift)
                             {
                                 Keyboard[38].OnInteract();
                                 yield return new WaitForSeconds(0.05f);
                             }
+                            Keyboard[26].OnInteract();
                         }
-                        Keyboard[26].OnInteract();
-                    }
-                    else if (charsToType[i] == '\'')
-                    {
-                        if (capsLock)
+                        else
                         {
-                            Keyboard[36].OnInteract();
-                            yield return new WaitForSeconds(0.05f);
-                        }
-                        else if (shift)
-                        {
-                            Keyboard[38].OnInteract();
-                            yield return new WaitForSeconds(0.05f);
-                        }
-                        Keyboard[26].OnInteract();
-                    }
-                    else
-                    {
-                        for (int j = 0; j < Keyboard.Length; j++)
-                        {
-                            if (Keyboard[j].GetComponentInChildren<TextMesh>() != null && Keyboard[j].GetComponentInChildren<TextMesh>().text.Length == 1)
+                            for (int j = 0; j < Keyboard.Length; j++)
                             {
-                                if (Keyboard[j].GetComponentInChildren<TextMesh>().text.ToLower()[0] == charsToType[i])
+                                if (Keyboard[j].GetComponentInChildren<TextMesh>() != null && Keyboard[j].GetComponentInChildren<TextMesh>().text.Length == 1)
                                 {
-                                    if (capsLock)
+                                    if (Keyboard[j].GetComponentInChildren<TextMesh>().text.ToLower()[0] == charsToType[i])
                                     {
-                                        Keyboard[36].OnInteract();
-                                        yield return new WaitForSeconds(0.05f);
-                                    }
-                                    else if (shift)
-                                    {
-                                        Keyboard[38].OnInteract();
-                                        yield return new WaitForSeconds(0.05f);
-                                    }
-                                    Keyboard[j].OnInteract();
-                                    break;
-                                }
-                                if (Keyboard[j].GetComponentInChildren<TextMesh>().text.ToUpper()[0] == charsToType[i])
-                                {
-                                    if (!capsLock && !shift)
-                                    {
-                                        if (i != charsToType.Length - 1 && "ABCDEFGHIJKLMNOPQRSTUVWXYZ\"".Contains(charsToType[i + 1]))
+                                        if (capsLock)
                                         {
                                             Keyboard[36].OnInteract();
                                             yield return new WaitForSeconds(0.05f);
                                         }
-                                        else
+                                        else if (shift)
                                         {
                                             Keyboard[38].OnInteract();
                                             yield return new WaitForSeconds(0.05f);
                                         }
+                                        Keyboard[j].OnInteract();
+                                        break;
                                     }
-                                    Keyboard[j].OnInteract();
-                                    break;
+                                    if (Keyboard[j].GetComponentInChildren<TextMesh>().text.ToUpper()[0] == charsToType[i])
+                                    {
+                                        if (!capsLock && !shift)
+                                        {
+                                            if (i != charsToType.Length - 1 && "ABCDEFGHIJKLMNOPQRSTUVWXYZ\"".Contains(charsToType[i + 1]))
+                                            {
+                                                Keyboard[36].OnInteract();
+                                                yield return new WaitForSeconds(0.05f);
+                                            }
+                                            else
+                                            {
+                                                Keyboard[38].OnInteract();
+                                                yield return new WaitForSeconds(0.05f);
+                                            }
+                                        }
+                                        Keyboard[j].OnInteract();
+                                        break;
+                                    }
                                 }
                             }
                         }
+                        yield return new WaitForSeconds(0.05f);
                     }
-                    yield return new WaitForSeconds(0.05f);
+                    else
+                    {
+                        yield return "sendtochaterror Typing halted due to the text box being full.";
+                        yield break;
+                    }
                 }
             }
         }
