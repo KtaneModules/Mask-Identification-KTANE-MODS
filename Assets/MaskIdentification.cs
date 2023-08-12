@@ -435,7 +435,7 @@ public class MaskIdentification : MonoBehaviour
                 int temp;
                 if (!int.TryParse(parameters[1], out temp) || temp <= 0)
                 {
-                    yield return "sendtochaterror The specified number of times to press the backspace key '" + parameters[1] + "' is invalid!";
+                    yield return "sendtochaterror!f The specified number of times to press the backspace key '" + parameters[1] + "' is invalid!";
                     yield break;
                 }
                 if (Intro || ActiveBorder || Animating1 || !Enterable)
@@ -492,7 +492,7 @@ public class MaskIdentification : MonoBehaviour
                     }
                     if (!good)
                     {
-                        yield return "sendtochaterror The specified character '" + charsToType[i] + "' cannot be typed!";
+                        yield return "sendtochaterror!f The specified character '" + charsToType[i] + "' cannot be typed!";
                         yield break;
                     }
                 }
