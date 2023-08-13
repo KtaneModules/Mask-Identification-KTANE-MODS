@@ -273,6 +273,7 @@ public class MaskIdentification : MonoBehaviour
         else
         {
             Animating1 = true;
+            StrikeIncoming = true;
             AudioClip clip = FailClips[Rnd.Range(0, 3)];
             Audio.PlaySoundAtTransform(clip.name, transform);
 
@@ -290,6 +291,7 @@ public class MaskIdentification : MonoBehaviour
             Playable = true;
             Toggleable = true;
             Animating1 = false;
+            StrikeIncoming = false;
             Stages = 0;
             Logging("Strike! Module will now reset");
             Module.HandleStrike();
@@ -379,6 +381,7 @@ public class MaskIdentification : MonoBehaviour
     bool ActiveBorder = false;
     bool Animating1 = false;
     bool Intro = true;
+    bool StrikeIncoming = false;
 
     IEnumerator ProcessTwitchCommand(string Command)
     {
@@ -432,7 +435,7 @@ public class MaskIdentification : MonoBehaviour
                 int temp;
                 if (!int.TryParse(parameters[1], out temp) || temp <= 0)
                 {
-                    yield return "sendtochaterror The specified number of times to press the backspace key '" + parameters[1] + "' is invalid!";
+                    yield return "sendtochaterror!f The specified number of times to press the backspace key '" + parameters[1] + "' is invalid!";
                     yield break;
                 }
                 if (Intro || ActiveBorder || Animating1 || !Enterable)
@@ -489,7 +492,7 @@ public class MaskIdentification : MonoBehaviour
                     }
                     if (!good)
                     {
-                        yield return "sendtochaterror The specified character '" + charsToType[i] + "' cannot be typed!";
+                        yield return "sendtochaterror!f The specified character '" + charsToType[i] + "' cannot be typed!";
                         yield break;
                     }
                 }
@@ -585,6 +588,16 @@ public class MaskIdentification : MonoBehaviour
 
     IEnumerator TwitchHandleForcedSolve()
     {
+        if (StrikeIncoming)
+        {
+            StopAllCoroutines();
+            LightBulbs[0].material = TheLights[1];
+            LightBulbs[1].material = TheLights[1];
+            LightBulbs[2].material = TheLights[1];
+            SeedPacket.sprite = SeedPacketIdentifier[Unique[Rnd.Range(0, 3)]];
+            Module.HandlePass();
+            yield break;
+        }
         while (Intro) yield return true;
         int start = Stages;
         for (int i = start; i < 3; i++)
