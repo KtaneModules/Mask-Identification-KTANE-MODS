@@ -35,6 +35,8 @@ public class MaskIdentification : MonoBehaviour
     public AudioClip IntroClip;
     public AudioClip OutroClip;
 
+    public static bool playingIntro = false;
+
 
     private bool[] successArr;
 
@@ -191,7 +193,11 @@ public class MaskIdentification : MonoBehaviour
 
     IEnumerator Reintroduction()
     {
-        Audio.PlaySoundAtTransform(IntroClip.name, transform);
+        if (!playingIntro)
+        {
+            Audio.PlaySoundAtTransform(IntroClip.name, transform);
+            playingIntro = true;
+        }
         successArr = new bool[] { false, false, false };
 
         yield return new WaitForSecondsRealtime(IntroClip.length);
